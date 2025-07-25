@@ -31,13 +31,13 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+        }}  
       />
       <Tabs.Screen
-        name="about"
+        name="cart"
         options={{
-          title: 'About',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="info" color={color} />,
+          title: 'Cart',
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="shopping-cart" color={color} />,
         }}
       />
       <Tabs.Screen
