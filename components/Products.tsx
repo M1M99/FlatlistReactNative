@@ -1,16 +1,18 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, SafeAreaView, SectionList, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Platform, SafeAreaView, SectionList, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import products, { CategoryType } from './../data/Products';
-import { ThemedText } from './ThemedText';
 
 type Props = {
   category: CategoryType | null;
 };
 
 export default function ProductsPage({ category }: Props) {
+  const { width, height } = useWindowDimensions();
+  const isLandScape = height < width
   const [newProduct, setNewProduct] = useState('');
+  const [newPrice, setNewPrice] = useState('');
   const [productData, setProductData] = useState<
     Record<CategoryType, { name: string; price: number }[]>
   >(products);
@@ -35,10 +37,13 @@ export default function ProductsPage({ category }: Props) {
   };
 
   const handleAddProduct = () => {
-    if (newProduct.trim() === '' || !category) return;
+    if (newProduct.trim() === '' || !category || newPrice.trim() === '') {
+      Alert.alert('All Fields Required')
+      return
+    };
     const newItem = {
       name: newProduct.trim(),
-      price: Math.floor(Math.random() * 10) + 1,
+      price: parseFloat(newPrice)
     };
     setProductData(prev => ({
       ...prev,
@@ -46,6 +51,7 @@ export default function ProductsPage({ category }: Props) {
     }));
 
     setNewProduct('');
+    setNewPrice('');
   };
 
   const handleDelete = (item: { name: string; price: number }) => {
@@ -90,7 +96,7 @@ export default function ProductsPage({ category }: Props) {
           {cart.length} Product / {cart.reduce((a, current) => a + current.price, 0)} $
         </Text>
       </View>
-      <SectionList
+      {/* <SectionList /// bununla landscape olmurdu yenede 2 si ilede misal yazdim
         sections={sectionData}
         keyExtractor={(item) => item.name}
         renderSectionHeader={({ section: { title } }) => (
@@ -106,14 +112,37 @@ export default function ProductsPage({ category }: Props) {
           </View>
         )}
         style={{ flex: 1 }}
+      /> */}
+      <FlatList // adaptiv ui ucun flatlist istifade etdim sectionlist (commentde olan hissede) isleyir sadece adaptiv ui ucun flat list.
+        data={productData[category]}
+        keyExtractor={(item) => item.name}
+        numColumns={2}
+        renderItem={({ item }) => (
+          <View style={[!isLandScape ? styles.containerHelper : styles.landscape]}>
+            <Text style={styles.textProd}>{item.name}</Text>
+            <FontAwesome onPress={() => handleDelete(item)} name='trash' style={styles.iconTrash}></FontAwesome>
+            <TouchableOpacity style={styles.btn} onPress={() => handleAdd(item)}>
+              <Text>+ Əlavə et </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        contentContainerStyle={{ gap: 8 }}
       />
-      <View style={styles.addSection}>
+
+      <View style={[styles.addSection,{flex:1,margin:10}]}>
         <TextInput
-          style={styles.input}
+          style={!isLandScape ? styles.input : styles.landscapeInput}
           placeholder="New Product Name"
           value={newProduct}
           onChangeText={setNewProduct}
           onSubmitEditing={handleAddProduct}
+        />
+        <TextInput
+          style={!isLandScape ? styles.input : styles.landscapeInput}
+          placeholder="Price"
+          keyboardType="numeric"
+          value={newPrice}
+          onChangeText={setNewPrice}
         />
         <TouchableOpacity style={styles.btn} onPress={handleAddProduct}>
           <Text>+ Əlavə et</Text>
@@ -156,21 +185,24 @@ const styles = StyleSheet.create({
     borderColor: 'deepskyblue',
     borderStyle: 'dashed',
     borderWidth: 1,
-    alignItems: 'center'
-  },
-  containerHelper: {
-    padding: 10, flex: 1
+    alignItems: 'center',
   },
   addSection: {
-    gap: 2,
+    gap: 3,
+    flex:1
   },
   input: {
     borderWidth: 1,
     borderColor: 'gray',
     padding: 10,
-    marginVertical: 20,
     borderRadius: 6,
     minHeight: 20,
+  },
+  landscapeInput: {
+    padding: 5,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius:5
   },
   cart: {
     fontSize: 20,
@@ -185,5 +217,15 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     minHeight: 20,
     marginHorizontal: 'auto'
+  },
+  containerHelper: {
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+    flex: 1
+  },
+  landscape: {
+    flex: 1,
+    marginHorizontal: 4
   }
+
 });
