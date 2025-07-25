@@ -1,3 +1,4 @@
+import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, SafeAreaView, SectionList, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -37,7 +38,7 @@ export default function ProductsPage({ category }: Props) {
     if (newProduct.trim() === '' || !category) return;
     const newItem = {
       name: newProduct.trim(),
-      price: Math.floor(Math.random() * 10) + 1, 
+      price: Math.floor(Math.random() * 10) + 1,
     };
     setProductData(prev => ({
       ...prev,
@@ -45,6 +46,29 @@ export default function ProductsPage({ category }: Props) {
     }));
 
     setNewProduct('');
+  };
+
+  const handleDelete = (item: { name: string; price: number }) => {
+    if (!category) return;
+
+    Alert.alert(
+      "Delete Product",
+      `Are you sure you want to delete "${item.name}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            setProductData(prev => ({
+              ...prev,
+              [category]: prev[category].filter(prod => prod.name !== item.name)
+            }));
+            Alert.alert(`${item.name} Deleted Successfully`)
+          }
+        }
+      ]
+    );
   };
 
 
@@ -75,6 +99,7 @@ export default function ProductsPage({ category }: Props) {
         renderItem={({ item }) => (
           <View style={styles.containerHelper}>
             <Text style={styles.textProd}>{item.name}</Text>
+            <FontAwesome onPress={() => handleDelete(item)} name='trash' style={styles.iconTrash}></FontAwesome>
             <TouchableOpacity style={styles.btn} onPress={() => handleAdd(item)}>
               <Text>+ Əlavə et </Text>
             </TouchableOpacity>
@@ -150,5 +175,15 @@ const styles = StyleSheet.create({
   cart: {
     fontSize: 20,
     marginVertical: 'auto'
+  },
+  iconTrash: {
+    fontSize: 20,
+    borderWidth: 1,
+    borderColor: 'deepskyblue',
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 6,
+    minHeight: 20,
+    marginHorizontal: 'auto'
   }
 });
